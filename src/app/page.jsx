@@ -2,13 +2,24 @@
 
 import { useState, useEffect } from "react"
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import { generateDashboardData, CHART_COLORS } from "./utils/generateDashboardData.js"
+import { generateDashboardData, CHART_COLORS } from "./utils/generateDashboardData"
+import { FirebaseProvider, useFirebase } from "./firebase/use-firebase"
 import "./styles.css"
 
-export default function Page() {
+// Wrap the main component with the FirebaseProvider
+export default function PageWrapper() {
+  return (
+    <FirebaseProvider>
+      <Page />
+    </FirebaseProvider>
+  )
+}
+
+function Page() {
   const [period, setPeriod] = useState("monthly")
   const [chartData, setChartData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const firebase = useFirebase()
 
   // Generate random data on initial load and when period changes
   useEffect(() => {
@@ -36,7 +47,7 @@ export default function Page() {
           <p className="label">{`${label}`}</p>
           {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }}>
-              {entry.name === "electricity" ? "Electricity (kWh)" : "Water (m³)"}: {entry.value}
+              {entry.dataKey === "electricity" ? "Electricity (kWh)" : "Water (m³)"}: {entry.value}
             </p>
           ))}
         </div>
@@ -46,7 +57,7 @@ export default function Page() {
   }
 
   // Show loading state
-  if (loading) {
+  if (loading || firebase.loading) {
     return <div className="loading">Loading dashboard data...</div>
   }
 
@@ -85,14 +96,28 @@ export default function Page() {
 
       {/* Main Content */}
       <main className="main-content">
+        {/* Peak Hour Alert */}
+        {firebase.showVoltageAlert && (
+          <div className="peak-hour-alert">
+            <strong>Peak Hour Alert!</strong> Your current power consumption ({firebase.totalVoltage}W) exceeds the
+            recommended threshold ({firebase.VOLTAGE_THRESHOLD}W) during peak hours.
+            <button onClick={firebase.dismissVoltageAlert} className="dismiss-alert">
+              Dismiss
+            </button>
+          </div>
+        )}
+
         <div className="content-header">
           <h2>Consumption Analysis</h2>
-          <select value={period} onChange={handlePeriodChange} className="period-select">
-            <option value="daily">Daily</option>
-            <option value="monthly">Monthly</option>
-            <option value="quarterly">Quarterly</option>
-            <option value="yearly">Yearly</option>
-          </select>
+          <div className="header-right">
+            {firebase.isPeakHour && <span className="peak-hour-indicator">Peak Hours (6PM-8PM)</span>}
+            <select value={period} onChange={handlePeriodChange} className="period-select">
+              <option value="daily">Daily</option>
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
         </div>
 
         <div className="charts-grid">

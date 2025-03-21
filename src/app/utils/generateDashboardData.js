@@ -116,7 +116,7 @@ export function generateDashboardData(period) {
     let baseValues = []
 
     if (type === "electricity") {
-      categories = ["AC", "Dryer", "Television", "Pump", "Refrigerator"]
+      categories = ["AC", "Smart TV", "Ceiling Fan", "Heater", "Lights"]
 
       // Different distribution patterns based on period
       if (period === "daily") {
@@ -129,7 +129,7 @@ export function generateDashboardData(period) {
         baseValues = [32, 28, 20, 10, 10]
       }
     } else if (type === "water") {
-      categories = ["Showers", "Dishes", "Gardening", "Laundry", "Miscellaneous"]
+      categories = ["Washing Machine", "Bathroom", "Kitchen", "Garden", "Other"]
 
       if (period === "daily") {
         baseValues = [35, 25, 10, 15, 15]
